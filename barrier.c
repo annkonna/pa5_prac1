@@ -33,6 +33,15 @@ pthread_mutex_t ctrLock;
  *         has released its threads, its work is done.
  */
 void barrier_wait(Barrier b) {
+    pthread_mutex_lock(&b->lock);
+    b->nwaiting += 1;
+    if (b->nthreads == b->nwaiting){
+        pthread_cond_broadcast(&b->barrier);
+    }
+    while (b->nthreads != b->nwaiting){
+        pthread_cond_wait(&b->barrier, &b->lock);
+    }
+    pthread_mutex_unlock(&b->lock);
 }
 
 
